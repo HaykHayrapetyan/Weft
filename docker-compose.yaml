@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  # app service for your backend
+  app:
+    container_name: backend
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      target: development
+    environment:
+      DATABASE_NAME: weft_local
+      DATABASE_URI: mongodb://database:27017
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - .env
+    ports:
+      - 4000:4000
+    depends_on:
+      - database
+  # start the mongodb service as container
+  database:
+    image: mongo:6.0
+    container_name: mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./volumes/database:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: weft
+      MONGO_INITDB_ROOT_PASSWORD: weft_pass
+    healthcheck:
+      test: echo 'db.stats().ok' | mongo localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
