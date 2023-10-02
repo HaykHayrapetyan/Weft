@@ -7,8 +7,9 @@ import { UserSchema } from './entities/user.entity';
 import { MapperManager } from 'src/shared/mapper-manager';
 import { UserOutput } from './dto/output/user.output';
 import { GetAllusersOutput } from './dto/output/get-all-users.output';
-import { UpdateUserStatusOutput } from './dto/output/update-user-status.output';
+import { UpdateUsersStatusOutput } from './dto/output/update-user-status.output';
 import { UpdateUserByNameOutput } from './dto/output/update-user-by-name.output';
+import { UpdateUsersStatusInput } from './dto/input/update-status.input';
 
 @Injectable()
 export class UserService {
@@ -37,11 +38,16 @@ export class UserService {
     return MapperManager.mapToClass(existingUser, UpdateUserByNameOutput);
   }
 
-  async updateUserStatus(userId: Types.ObjectId, status: Statuses): Promise<UpdateUserStatusOutput> {
-    const existingUser = await this.userModel.findByIdAndUpdate(userId, {status}, { new: true });
-    if (!existingUser) {
-      throw new NotFoundException(`User not found`);
+  async updateUserStatusBulk(statusDto: UpdateUsersStatusInput): Promise<UpdateUsersStatusOutput>{
+    if(!statusDto.statuses || statusDto.statuses.length === 0){
+      throw new NotFoundException(`Statuses not provided`);
     }
-    return MapperManager.mapToClass(existingUser, UpdateUserStatusOutput);
+
+    const items = [];
+    for (const { userId, status } of statusDto.statuses) {
+      const existingUser = await this.userModel.findByIdAndUpdate(userId, {status}, { new: true });
+      items.push(existingUser);
+    }
+    return MapperManager.mapToClass({ total: items.length, items }, GetAllusersOutput);
   }
 }

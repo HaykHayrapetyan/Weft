@@ -1,8 +1,9 @@
-import { IsEnum, IsMongoId, IsNotEmpty, IsString, MaxLength } from "class-validator";
+import { IsArray, IsEnum, IsMongoId, IsNotEmpty, IsString, MaxLength, ValidateNested } from "class-validator";
 import { Types } from "mongoose";
 import { Statuses } from "../../user.types";
+import { Type } from "class-transformer";
 
-export class UpdateUserStatusInput {
+export class UpdateStatusInput {
     @IsMongoId()
     @MaxLength(25)
     @IsNotEmpty()
@@ -12,4 +13,12 @@ export class UpdateUserStatusInput {
     @IsEnum(Statuses)
     @IsNotEmpty()
     readonly status: Statuses;
+}
+
+
+export class UpdateUsersStatusInput {
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => UpdateStatusInput)
+    statuses: UpdateStatusInput[];
 }

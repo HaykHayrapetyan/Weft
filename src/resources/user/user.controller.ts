@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Param, Patch, Post, Query, Res } fro
 import { CreateUserInput } from './dto/input/create-user.input';
 import { UserService } from './user.service';
 import { PaginationInput } from './dto/input/pagination.input';
-import { UpdateUserStatusInput } from './dto/input/update-status.input';
+import { UpdateUsersStatusInput } from './dto/input/update-status.input';
 
 @Controller('user')
 export class UserController {
@@ -30,8 +30,7 @@ export class UserController {
   }
 
   @Patch('status')
-  async updateUserStatus(@Body() statusDto: UpdateUserStatusInput) {
-    const {userId, status} = statusDto;
-    return this.userService.updateUserStatus(userId, status);
+  async updateUserStatus(@Body() statusDto: UpdateUsersStatusInput) {
+    return this.userService.updateUserStatusBulk(statusDto);
   }
 }
