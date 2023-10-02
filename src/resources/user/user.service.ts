@@ -43,11 +43,16 @@ export class UserService {
       throw new NotFoundException(`Statuses not provided`);
     }
 
-    const items = [];
-    for (const { userId, status } of statusDto.statuses) {
-      const existingUser = await this.userModel.findByIdAndUpdate(userId, {status}, { new: true });
-      items.push(existingUser);
-    }
-    return MapperManager.mapToClass({ total: items.length, items }, GetAllusersOutput);
+    const bulkOperations = statusDto.statuses.map(({ userId, status }) => ({
+      updateOne: {
+        filter: { _id: userId },
+        update: { $set: { status } },
+      },
+    }));
+    await this.userModel.bulkWrite(bulkOperations);
+    
+    const userIds = statusDto.statuses.map(({ userId }) => userId);
+    const updatedUsers = await this.userModel.find({ _id: { $in: userIds } }).exec();
+    return MapperManager.mapToClass({ total: updatedUsers.length, items: updatedUsers }, UpdateUsersStatusOutput);
   }
 }
